@@ -78,7 +78,7 @@ def get_item(item_id):
 
 def send_to_webhook(posts):
   """
-  Kirim payload JSON ke URL Discord Webhook
+  kirim payload JSON ke URL Discord Webhook
 
   Parameters
   ----------
@@ -88,9 +88,9 @@ def send_to_webhook(posts):
   current_date = dt.date.today().strftime('%B %d, %Y')
 
   payload = {
-    'username': "Y Combinator's Hacker News",
+    'username': "Hacker News",
     'avatar_url': 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Y_Combinator_logo.svg/240px-Y_Combinator_logo.svg.png',
-    'content': f"**{MAX_POSTS} Post Terbaik dari Hacker News ({current_date})**",
+    'content': f"**{MAX_POSTS} Post Terbaik dari Y Combinator's Hacker News ({current_date})**",
     'embeds': [
       {
         'color': '16737792',
@@ -119,7 +119,7 @@ def send_to_webhook(posts):
           }
         ],
         'footer': {
-          'text': 'HN Bot by YG',
+          'text': 'Bot by YG',
           'icon_url': 'https://news.ycombinator.com/y18.gif'
         }
       } for post in posts
