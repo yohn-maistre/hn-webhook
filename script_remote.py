@@ -7,7 +7,7 @@ import os
 # Constants
 WEBHOOK_URL = os.environ["WEBHOOK_URL"]
 MAX_POSTS = 10
-TOP_POSTS_URL = 'https://hacker-news.firebaseio.com/v0/beststories.json'
+TOP_POSTS_URL = 'https://hacker-news.firebaseio.com/v0/topstories.json'
 GET_ITEM_URL = 'https://hacker-news.firebaseio.com/v0/item/{}.json'
 REQUEST_HEADER = {"User-Agent": "Hacker News Best 10 Bot"}
 
