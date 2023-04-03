@@ -1,5 +1,6 @@
 import requests
 import datetime as dt
+import pytz
 import re
 import html
 import os
@@ -7,19 +8,13 @@ import os
 # Constants
 WEBHOOK_URL = os.environ["WEBHOOK_URL"]
 MAX_POSTS = 10
+BEST_POSTS_URL = 'https://hacker-news.firebaseio.com/v0/beststories.json'
 TOP_POSTS_URL = 'https://hacker-news.firebaseio.com/v0/topstories.json'
 GET_ITEM_URL = 'https://hacker-news.firebaseio.com/v0/item/{}.json'
 REQUEST_HEADER = {"User-Agent": "Hacker News Best 10 Bot"}
 
 def clean_text(text):
-  """
-  Hapus tag HTML & kurangi jumlah karakter ke 280.
-
-  Parameter
-  ----------
-  text : str
-    Teks HTML
-  """
+  # Hapus tag HTML & kurangi jumlah karakter ke 280.
   cleaned_text = html.unescape(re.sub(re.compile('<.*?>'), '', text))
 
   if len(cleaned_text) > 280:
@@ -27,31 +22,26 @@ def clean_text(text):
   
   return cleaned_text
 
-def fetch_top_posts(max_posts):
-  """
-  tarik ID post dari 'beststories' pake API
+def fetch_best_posts(max_posts):
+  # tarik 10 ID post dari 'beststories'
+  with requests.get(BEST_POSTS_URL, headers=REQUEST_HEADER) as response:
+    item_ids = response.json()
+    item_ids = item_ids[:max_posts]
+    posts1 = [get_item(item_id) for item_id in item_ids]
 
-  Parameter
-  ----------
-  max_posts : int
-    Jumlah ID post yang dikembalikan.
-  """
+    return posts1
+
+def fetch_top_posts(max_posts):
+  # tarik 10 ID post dari 'topstories'
   with requests.get(TOP_POSTS_URL, headers=REQUEST_HEADER) as response:
     item_ids = response.json()
     item_ids = item_ids[:max_posts]
-    posts = [get_item(item_id) for item_id in item_ids]
+    posts2 = [get_item(item_id) for item_id in item_ids]
 
-    return posts
+    return posts2
 
 def get_item(item_id):
-  """
-  tarik metadata post
-
-  Parameter
-  ----------
-  item_id : int
-    post ID.
-  """
+  # tarik metadata post
   with requests.get(GET_ITEM_URL.format(item_id), headers=REQUEST_HEADER) as response:
     data = response.json()
 
@@ -76,21 +66,16 @@ def get_item(item_id):
 
     return item
 
-def send_to_webhook(posts):
-  """
-  kirim payload JSON ke URL Discord Webhook
-
-  Parameters
-  ----------
-  posts : list
-    list post.
-  """
-  current_date = dt.date.today().strftime('%B %d, %Y')
+def sendbest_to_webhook(posts):
+  # Kirim payload BEST POSTS dalam JSON ke URL Discord Webhook
+  timezone = pytz.timezone('Asia/Jayapura')
+  current_datetime = dt.datetime.now(timezone)
+  current_date = current_datetime.strftime('%B %d, %Y')
 
   payload = {
-    'username': "Hacker News",
+    'username': "Y Combinator's Hacker News",
     'avatar_url': 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Y_Combinator_logo.svg/240px-Y_Combinator_logo.svg.png',
-    'content': f"**{MAX_POSTS} Post Terbaik dari Y Combinator's Hacker News ({current_date})**",
+    'content': f"__**{MAX_POSTS} Postingan Terbaik 📰 Belakangan Ini ({current_date})**__",
     'embeds': [
       {
         'color': '16737792',
@@ -119,7 +104,7 @@ def send_to_webhook(posts):
           }
         ],
         'footer': {
-          'text': 'Bot by YG',
+          'text': 'HN Bot by YG',
           'icon_url': 'https://news.ycombinator.com/y18.gif'
         }
       } for post in posts
@@ -128,12 +113,62 @@ def send_to_webhook(posts):
 
   with requests.post(WEBHOOK_URL, json=payload) as response:
     print(response.status_code)
+    print(response.text)
+
+def sendtop_to_webhook(posts):
+  # Kirim payload TOP POSTS dalam JSON ke URL Discord Webhook
+  current_date = dt.date.today().strftime('%B %d, %Y')
+
+  payload = {
+    'username': "Y Combinator's Hacker News",
+    'avatar_url': 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Y_Combinator_logo.svg/240px-Y_Combinator_logo.svg.png',
+    'content': f"__**{MAX_POSTS} Postingan *Trending* 🔥 Pagi Ini ({current_date})**__",
+    'embeds': [
+      {
+        'color': '16737792',
+        'author': {
+          'name': post['by']
+        },
+        'title': f"{post['title']}",
+        'url': f"{post['url']}",
+        'description': "" if post['text'] == None else f"{post['text']}",
+        'timestamp': post['timestamp'],
+        'fields': [
+          {
+            'name': 'Post ID',
+            'value': f"[{post['id']}]({post['permalink']})",
+            'inline': True
+          },
+          {
+            'name': 'Score',
+            'value': f"{post['score']} points",
+            'inline': True
+          },
+          {
+            'name': 'Comments',
+            'value': f"{post['comments']}",
+            'inline': True
+          }
+        ],
+        'footer': {
+          'text': 'HN Bot by YG',
+          'icon_url': 'https://news.ycombinator.com/y18.gif'
+        }
+      } for post in posts
+    ]
+  }
+
+  with requests.post(WEBHOOK_URL, json=payload) as response:
+    print(response.status_code)
+    print(response.text)
 
 def main():
   print("Menghubungi Hacker News...")
-  posts = fetch_top_posts(MAX_POSTS)
+  best_posts = fetch_best_posts(MAX_POSTS)
+  top_posts = fetch_top_posts(MAX_POSTS)
   print("Data diterima. Mengirim ke webhook...")
-  send_to_webhook(posts)
+  sendtop_to_webhook(top_posts)
+  sendbest_to_webhook(best_posts)
 
 if __name__ == "__main__":
   main()
