@@ -22,23 +22,23 @@ def clean_text(text):
   
   return cleaned_text
 
-def fetch_best_posts(max_posts):
-  # tarik 10 ID post dari 'beststories'
-  with requests.get(BEST_POSTS_URL, headers=REQUEST_HEADER) as response:
-    item_ids = response.json()
-    item_ids = item_ids[:max_posts]
-    posts1 = [get_item(item_id) for item_id in item_ids]
-
-    return posts1
-
 def fetch_top_posts(max_posts):
   # tarik 10 ID post dari 'topstories'
   with requests.get(TOP_POSTS_URL, headers=REQUEST_HEADER) as response:
     item_ids = response.json()
     item_ids = item_ids[:max_posts]
-    posts2 = [get_item(item_id) for item_id in item_ids]
+    top_posts = [get_item(item_id) for item_id in item_ids]
 
-    return posts2
+    return top_posts
+
+def fetch_best_posts(max_posts):
+  # tarik 10 ID post dari 'beststories'
+  with requests.get(BEST_POSTS_URL, headers=REQUEST_HEADER) as response:
+    item_ids = response.json()
+    item_ids = item_ids[:max_posts]
+    best_posts = [get_item(item_id) for item_id in item_ids]
+
+    return best_posts
 
 def get_item(item_id):
   # tarik metadata post
@@ -66,16 +66,15 @@ def get_item(item_id):
 
     return item
 
-def sendbest_to_webhook(posts):
-  # Kirim payload BEST POSTS dalam JSON ke URL Discord Webhook
-  timezone = pytz.timezone('Asia/Jayapura')
-  current_datetime = dt.datetime.now(timezone)
-  current_date = current_datetime.strftime('%B %d, %Y')
+
+def sendtop_to_webhook(posts):
+  # Kirim payload TOP POSTS dalam JSON ke URL Discord Webhook
+  current_date = dt.date.today().strftime('%B %d, %Y')
 
   payload = {
     'username': "Y Combinator's Hacker News",
     'avatar_url': 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Y_Combinator_logo.svg/240px-Y_Combinator_logo.svg.png',
-    'content': f"__**{MAX_POSTS} Postingan Terbaik 📰 Belakangan Ini ({current_date})**__",
+    'content': f"__**{MAX_POSTS} Postingan *Trending* 🔝 Pagi Ini ({current_date})**__",
     'embeds': [
       {
         'color': '16737792',
@@ -115,14 +114,16 @@ def sendbest_to_webhook(posts):
     print(response.status_code)
     print(response.text)
 
-def sendtop_to_webhook(posts):
-  # Kirim payload TOP POSTS dalam JSON ke URL Discord Webhook
-  current_date = dt.date.today().strftime('%B %d, %Y')
+def sendbest_to_webhook(posts):
+  # Kirim payload BEST POSTS dalam JSON ke URL Discord Webhook
+  timezone = pytz.timezone('Asia/Jayapura')
+  current_datetime = dt.datetime.now(timezone)
+  current_date = current_datetime.strftime('%B %d, %Y')
 
   payload = {
     'username': "Y Combinator's Hacker News",
     'avatar_url': 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Y_Combinator_logo.svg/240px-Y_Combinator_logo.svg.png',
-    'content': f"__**{MAX_POSTS} Postingan *Trending* 🔥 Pagi Ini ({current_date})**__",
+    'content': f"__**{MAX_POSTS} Postingan Terbaik 🔝📰 Belakangan Ini ({current_date})**__",
     'embeds': [
       {
         'color': '16737792',
@@ -164,8 +165,8 @@ def sendtop_to_webhook(posts):
 
 def main():
   print("Menghubungi Hacker News...")
-  best_posts = fetch_best_posts(MAX_POSTS)
   top_posts = fetch_top_posts(MAX_POSTS)
+  best_posts = fetch_best_posts(MAX_POSTS)
   print("Data diterima. Mengirim ke webhook...")
   sendtop_to_webhook(top_posts)
   sendbest_to_webhook(best_posts)
