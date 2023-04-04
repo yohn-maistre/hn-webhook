@@ -69,7 +69,9 @@ def get_item(item_id):
 
 def sendtop_to_webhook(posts):
   # Kirim payload TOP POSTS dalam JSON ke URL Discord Webhook
-  current_date = dt.date.today().strftime('%B %d, %Y')
+  timezone = pytz.timezone('Asia/Jayapura')
+  current_datetime = dt.datetime.now(timezone)
+  current_date = current_datetime.strftime('%B %d, %Y')
 
   payload = {
     'username': "Y Combinator's Hacker News",
