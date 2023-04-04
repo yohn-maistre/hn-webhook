@@ -3,7 +3,7 @@ name: Discord Webhook
 on:
   workflow_dispatch:
   schedule:
-    - cron: "45 20/6 * * *"
+    - cron: "30 21/6 * * *"
 
 jobs:
   build:
