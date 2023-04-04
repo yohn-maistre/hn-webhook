@@ -76,7 +76,7 @@ def sendtop_to_webhook(posts):
   payload = {
     'username': "Y Combinator's Hacker News",
     'avatar_url': 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Y_Combinator_logo.svg/240px-Y_Combinator_logo.svg.png',
-    'content': f"__**{MAX_POSTS} Postingan *Trending* 🔥 Pagi Ini ({current_date})**__",
+    'content': f"__**{MAX_POSTS} Postingan *Trending* 🔥 Hari Ini ({current_date})**__",
     'embeds': [
       {
         'color': '16737792',
